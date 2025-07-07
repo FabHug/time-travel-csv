@@ -98,6 +98,7 @@ def process_csv_line(line, shifts):
                 
                 # Handle glucose value carefully - it might be split due to comma
                 glucose_value = ''
+                scan_value = ''
                 if len(parts) > 4:
                     if parts[4] and parts[4].strip():
                         glucose_value = parts[4].strip()
@@ -105,16 +106,26 @@ def process_csv_line(line, shifts):
                         if len(parts) > 5 and parts[5] and parts[5].strip():
                             glucose_value += ',' + parts[5].strip()
                             # Remove the extra part from remaining_fields
-                            parts = parts[:5] + parts[6:]
+                            #parts = parts[:5] + parts[6:]
+                    if parts[5] and parts[5].strip():
+                        scan_value = parts[5].strip()
+                        # If there's a comma in the glucose value, it might be split
+                        if len(parts) > 6 and parts[6] and parts[6].strip():
+                            scan_value += ',' + parts[6].strip()
+                            # Remove the extra part from remaining_fields
+                            parts = parts[:6] + parts[7:]
                 
-                remaining_fields = ','.join(parts[5:]) if len(parts) > 5 else ''
+                remaining_fields = ','.join(parts[6:]) if len(parts) > 6 else ''
                 
                 # Ensure glucose value is properly quoted (remove any existing quotes first)
                 if glucose_value:
                     glucose_value = glucose_value.strip().strip('"')
                     glucose_value = f'"{glucose_value}"'
+                if scan_value:
+                    scan_value = scan_value.strip().strip('"')
+                    scan_value = f'"{scan_value}"'
                 
-                reconstructed_line = f'{device},{serial},{timestamp},{register_type},{glucose_value},{remaining_fields}'
+                reconstructed_line = f'{device},{serial},{timestamp},{register_type},{glucose_value},{scan_value},{remaining_fields}'
                 
                 return reconstructed_line
         return line
