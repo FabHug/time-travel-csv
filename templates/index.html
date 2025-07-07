@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Freestyle Libre CSV Time Shifter</title>
+</head>
+<body>
+    <h1>Freestyle Libre CSV Time Shifter</h1>
+    <form id="upload-form">
+        <input type="file" id="csvfile" name="file" accept=".csv" required />
+        <button type="submit">Upload & Shift Dates</button>
+    </form>
+    <p id="status"></p>
+    <script>
+    document.getElementById('upload-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const fileInput = document.getElementById('csvfile');
+        if (!fileInput.files.length) return;
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        document.getElementById('status').textContent = 'Uploading...';
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                document.getElementById('status').textContent = 'Error: ' + text;
+                return;
+            }
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'shifted_' + file.name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            document.getElementById('status').textContent = 'Done!';
+        } catch (err) {
+            document.getElementById('status').textContent = 'Error: ' + err;
+        }
+    });
+    </script>
+</body>
+</html> 
